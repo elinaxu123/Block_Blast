@@ -1,7 +1,6 @@
 import pygame
 import random
 import sys
-import time
 
 # Grid size presets
 GRID_SIZES = {
@@ -29,7 +28,6 @@ RED = (255, 0, 0)
 OBSTACLE_COLOR = (128, 128, 128)
 
 RED_LINE_ROWS = 3
-MOVE_TIME_LIMIT = 10  # seconds to place a block
 
 # Block colors
 COLORS = [
@@ -86,7 +84,7 @@ def place_block(grid, shape, color, x, y):
 def clear_full_rows(grid, score):
     rows_to_clear = [
         i for i in range(RED_LINE_ROWS, GRID_HEIGHT)
-        if all(grid[i][j][0] != 0 for j in range(GRID_WIDTH))  # ✅ FIX: accept obstacles too
+        if all(grid[i][j][0] != 0 for j in range(GRID_WIDTH))
     ]
     for row in rows_to_clear:
         grid[row] = [(0, None) for _ in range(GRID_WIDTH)]
@@ -96,7 +94,7 @@ def clear_full_rows(grid, score):
 def clear_full_columns(grid, score):
     cols_to_clear = [
         j for j in range(GRID_WIDTH)
-        if all(grid[i][j][0] != 0 for i in range(RED_LINE_ROWS, GRID_HEIGHT))  # ✅ FIX: accept obstacles too
+        if all(grid[i][j][0] != 0 for i in range(RED_LINE_ROWS, GRID_HEIGHT))
     ]
     for col in cols_to_clear:
         for row in range(RED_LINE_ROWS, GRID_HEIGHT):
@@ -125,23 +123,10 @@ def run_game():
 
     grid, score = initialize_game()
     block, block_color, block_x, block_y = new_block()
-    last_move_time = time.time()
     running = True
 
     while running:
         screen.fill(WHITE)
-        current_time = time.time()
-
-        # Auto-place after timeout
-        if current_time - last_move_time > MOVE_TIME_LIMIT:
-            if can_place(grid, block, block_x, block_y):
-                place_block(grid, block, block_color, block_x, block_y)
-                grid, score = clear_full_rows(grid, score)
-                grid, score = clear_full_columns(grid, score)
-            block, block_color, block_x, block_y = new_block()
-            if game_over(grid) or no_more_moves(grid, block):
-                running = False
-            last_move_time = time.time()
 
         # Event handling
         for event in pygame.event.get():
@@ -150,16 +135,12 @@ def run_game():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT and block_y > 0:
                     block_y -= 1
-                    last_move_time = time.time()
                 elif event.key == pygame.K_RIGHT and block_y < GRID_WIDTH - len(block[0]):
                     block_y += 1
-                    last_move_time = time.time()
                 elif event.key == pygame.K_DOWN and block_x < GRID_HEIGHT - len(block):
                     block_x += 1
-                    last_move_time = time.time()
                 elif event.key == pygame.K_UP and block_x > RED_LINE_ROWS:
                     block_x -= 1
-                    last_move_time = time.time()
                 elif event.key == pygame.K_RETURN and can_place(grid, block, block_x, block_y):
                     place_block(grid, block, block_color, block_x, block_y)
                     grid, score = clear_full_rows(grid, score)
@@ -167,7 +148,6 @@ def run_game():
                     block, block_color, block_x, block_y = new_block()
                     if game_over(grid) or no_more_moves(grid, block):
                         running = False
-                    last_move_time = time.time()
 
         # Draw grid
         for i in range(GRID_HEIGHT):
@@ -181,7 +161,7 @@ def run_game():
                     pygame.draw.rect(screen, grid[i][j][1], rect)
                 pygame.draw.rect(screen, GRAY, rect, 1)
 
-        # Red line
+        # Draw red line
         pygame.draw.rect(screen, RED, (0, RED_LINE_ROWS * BLOCK_SIZE, WIDTH, 2))
 
         # Draw current block
