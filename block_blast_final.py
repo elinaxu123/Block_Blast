@@ -133,10 +133,19 @@ def run_game():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT and block_y > 0:
-                    block_y -= 1
-                elif event.key == pygame.K_RIGHT and block_y < GRID_WIDTH - len(block[0]):
-                    block_y += 1
+                # Fixed movement logic
+                if event.key == pygame.K_LEFT:
+                    if all(
+                        block[i][0] == 0 or block_y > 0
+                        for i in range(len(block))
+                    ):
+                        block_y -= 1
+                elif event.key == pygame.K_RIGHT:
+                    if all(
+                        block[i][-1] == 0 or block_y + len(block[0]) < GRID_WIDTH
+                        for i in range(len(block))
+                    ):
+                        block_y += 1
                 elif event.key == pygame.K_DOWN and block_x < GRID_HEIGHT - len(block):
                     block_x += 1
                 elif event.key == pygame.K_UP and block_x > RED_LINE_ROWS:
